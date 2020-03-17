@@ -1,0 +1,46 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {% block css %}
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+              integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+              crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% endblock %}
+
+    <title>
+        {% block title %}
+            Company Statistics | {{ page_title|title }}
+        {% endblock %}
+    </title>
+</head>
+<body>
+
+<header>
+    {% include 'main_app/includes/navbar.html' %}
+</header>
+
+<!-- Begin page content -->
+<main role="main">
+    <div class="container mt-3">
+        {% block content %}
+        {% endblock %}
+    </div>
+</main>
+
+{#{% include 'main_app/includes/footer.html' %}#}
+
+{% include 'main_app/includes/js.html' %}
+
+{% block javascript %}
+{% endblock %}
+
+</body>
+</html>
