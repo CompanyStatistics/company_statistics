@@ -127,3 +127,5 @@ STATICFILES_DIRS = (
     # os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'assets'),
 )
+
+AUTH_USER_MODEL = 'auth_app.CSUser'
