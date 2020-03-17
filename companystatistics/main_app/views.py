@@ -1,6 +1,5 @@
-from django.http import HttpResponse
 from django.shortcuts import render
 
 
 def index(request):
-    return HttpResponse('Company Statistics App')
+    return render(request, 'main_app/index.html', {})
