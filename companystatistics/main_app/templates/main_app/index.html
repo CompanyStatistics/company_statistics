@@ -1,0 +1,63 @@
+{% extends 'main_app/base.html' %}
+
+{% block title %}
+    {% if company %}
+        Отделы компании: {{ company.title }}
+    {% else %}
+        Все отделы
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+
+        <div class="col-3 p-3 mb-2 bg-secondary text-white">
+            <h3>Компании</h3>
+            <ul id="cards" class="list-group">
+                <li {% if not company %}class="list-group-item list-group-item-primary"
+                    {% else %}class="list-group-item"{% endif %}>
+                    <a href="{% url "department_list" %}">Все</a>
+                </li>
+                {% for c in companies %}
+                    <li {% if company == c %}class="list-group-item list-group-item-primary"
+                        {% else %}class="list-group-item"{% endif %}>
+                        <a href="{% url "stat:department_list_company" c.slug %}">
+                            {{ c.title }}
+                            <br><span>Отделов: {{ c.total_departments }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        {% if company %}
+                            Отделы компании {{ company.title }}
+                        {% else %}
+                            Все отделы
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% for department in departments %}
+                        {% with company=department.company %}
+                            <h4>
+                                <a href="{% url "stat:department_detail" department.slug %}">{{ department.title }}</a>
+                            </h4>
+                            <p class="card-text">
+                                <a href="{% url "stat:department_list_company" company.slug %}">{{ company }}</a>.
+                                Форм: {{ department.total_stat_titles }}.
+                            </p>
+                        {% endwith %}
+                        {% empty %}
+                        <p class="card-text">Нет отделов</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
