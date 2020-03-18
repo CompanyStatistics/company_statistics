@@ -1,0 +1,16 @@
+{% extends 'main_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h2>{{ page_title|title }}</h2>
+    <form class="form-horizontal" action="{% url 'auth:edit' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ edit_form|crispy }}
+        {{ profile_form|crispy }}
+        <input class="form-control" type="submit" value="Сохранить">
+    </form>
+{#    <a href="{% url 'main:index' %}" class="form-control last btn btn-round">#}
+    <a href="{% url 'department_list' %}" class="form-control last btn btn-round">
+        Компании
+    </a>
+{% endblock %}

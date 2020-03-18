@@ -19,4 +19,4 @@ class CSUserProfile(models.Model):
 
     @receiver(post_save, sender=CSUser)
     def save_user_profile(sender, instance, **kwargs):
-        instance.userprofile.save()
+        instance.csuserprofile.save()
