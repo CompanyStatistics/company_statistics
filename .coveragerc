@@ -1,0 +1,6 @@
+[run]
+source = auth_app
+
+[report]
+omit =
+    */migrations/*
