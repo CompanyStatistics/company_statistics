@@ -29,6 +29,7 @@ jobs:
     - name: Run Tests
       run: |
         coverage run companystatistics/manage.py test
+        coverage xml
     - name: Coveralls GitHub Action
       uses: coverallsapp/github-action@v1.0.1
       with:
