@@ -24,21 +24,21 @@
             <ul class="navbar-nav ml-auto px-3">
                 {% if request.user.is_authenticated %}
                     <li class="nav-item text-nowrap">
-                        <a class="nav-link" href="{% url "auth:logout" %}">Выйти</a>
+                        <a class="nav-link" href="{% url "auth_app:logout" %}">Выйти</a>
                     </li>
                     {% if page_title != "edit" and page_title != "редактировать" %}
                         <li class="nav-item text-nowrap">
-                            <a class="nav-link" href="{% url "auth:edit" %}">Редактировать</a>
+                            <a class="nav-link" href="{% url "auth_app:edit" %}">Редактировать</a>
                         </li>
                     {% endif %}
                     {% if page_title != "profile" and page_title != "профиль" %}
                         <li class="nav-item text-nowrap">
-                            <a class="nav-link" href="{% url "auth:profile" %}">Профиль ({{ request.user }})</a>
+                            <a class="nav-link" href="{% url "auth_app:profile" %}">Профиль ({{ request.user }})</a>
                         </li>
                     {% endif %}
                 {% else %}
                     <li class="nav-item text-nowrap">
-                        <a class="nav-link" href="{% url "auth:login" %}">Войти</a>
+                        <a class="nav-link" href="{% url "auth_app:login" %}">Войти</a>
                     </li>
                 {% endif %}
             </ul>

@@ -3,7 +3,7 @@
 
 {% block content %}
     <h2>{{ page_title|title }}</h2>
-    <form class="form-horizontal" action="{% url 'auth:edit' %}" method="post" enctype="multipart/form-data">
+    <form class="form-horizontal" action="{% url 'auth_app:edit' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ edit_form|crispy }}
         {{ profile_form|crispy }}
