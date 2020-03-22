@@ -1,0 +1,16 @@
+{% extends 'main_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h2>{{ page_title|title }}</h2>
+    <form class="form-horizontal" method="post">
+        {% csrf_token %}
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+        {{ login_form|crispy }}
+        <br>
+        <input class="form-control btn btn-primary" type="submit" value="Войти" >
+    </form>
+{#    <p><a href="{% url 'auth_app:password_reset' %}" class="btn btn-link">Забыли ваш пароль?</a></p>#}
+{% endblock %}

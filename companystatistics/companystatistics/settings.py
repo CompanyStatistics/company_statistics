@@ -32,6 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'main_app',
+    'auth_app',
+    'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -120,9 +122,29 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/assets/'
+STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
     # os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'assets'),
 )
+
+AUTH_USER_MODEL = 'auth_app.CSUser'
+
+# LOGIN_REDIRECT_URL = reverse_lazy('department_list')
+LOGIN_URL = '/auth/login/'
+# LOGIN_ERROR_URL = '/'
+# LOGOUT_REDIRECT_URL = ''
+
+# вариант логирования сообщений почты в виде файлов вместо отправки
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = 'tmp/email-messages/'
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'auth_app.authentication.EmailAuthBackend',
+]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
