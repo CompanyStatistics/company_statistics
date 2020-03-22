@@ -4,3 +4,6 @@ source = auth_app
 [report]
 omit =
     */migrations/*
+
+[xml]
+package_depth = 99
