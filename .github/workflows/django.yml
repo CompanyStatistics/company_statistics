@@ -28,6 +28,5 @@ jobs:
         pip install coveralls
     - name: Run Tests
       run: |
-#        python companystatistics/manage.py test
         coverage run companystatistics/manage.py test
         coveralls
