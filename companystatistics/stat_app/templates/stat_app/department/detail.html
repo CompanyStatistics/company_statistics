@@ -1,0 +1,98 @@
+{% extends 'main_app/base.html' %}
+{% load crispy_forms_tags %}
+{#{% load plotly_dash %}#}
+
+{% block title %}
+    {{ object.title }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% with company=department.company %}
+
+            <div class="col-3 p-3 mb-2 bg-secondary">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            {{ object.title }}
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Описание:</h3>
+                        <p class="card-text">
+                            <a href="{% url "stat_app:department_list_company" company.slug %}">{{ company.title }}</a>.
+                        </p>
+                        {% if object.overview %}
+                            <p class="card-text">
+                                {{ object.overview|linebreaks }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    {% if request.user.is_staff %}
+                        <div class="card-footer">
+                            <a href="{% url "stat_app:stat_title_create" department.id %}"
+                               class="btn btn-primary">
+                                Добавить форму
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="col-9">
+                {% for stat_title in stat_titles %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h3>
+                                        {#                                        {{ stat_title }} <a class="btn btn-link" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">Скрыть/Показать</a>#}
+                                        {{ stat_title }} <a class="btn btn-link" data-toggle="collapse"
+                                                            href="#collapse{{ stat_title.id }}" role="button"
+                                                            aria-expanded="false"
+                                                            aria-controls="collapse{{ stat_title.id }}">Скрыть/Показать</a>
+                                    </h3>
+
+                                </div>
+                                <div class="card-body">
+                                    {% if request.user.is_staff %}
+                                        {#                                            <div class="collapse" id="collapseExample">#}
+                                        <div class="collapse" id="collapse{{ stat_title.id }}">
+                                            <ul class="list-group">
+                                                {% for s in stats %}
+                                                    {% if s.title == stat_title %}
+                                                        <li class="list-group-item">
+                                                            {{ s.date }} - {{ s.amount }} ({{ s.owner }})
+                                                            <a href="{% url "stat_app:stat_edit" s.id %}"
+                                                               class="btn btn-link">
+                                                                Изменить данные
+                                                            </a>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                    <a href="{% url "stat_app:stat_create" stat_title.id %}"
+                                       class="btn btn-primary mt-3">
+                                        Добавить данные
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="card">
+                        <div class="card-body">
+                            Нет форм
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        {% endwith %}
+    </div>
+
+{% endblock %}
