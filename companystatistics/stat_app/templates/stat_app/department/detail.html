@@ -60,6 +60,7 @@
                                     {% if request.user.is_staff %}
                                         {#                                            <div class="collapse" id="collapseExample">#}
                                         <div class="collapse" id="collapse{{ stat_title.id }}">
+                                            <canvas id="myChart{{ stat_title.id }}" width="400" height="150"></canvas>
                                             <ul class="list-group">
                                                 {% for s in stats %}
                                                     {% if s.title == stat_title %}
@@ -95,4 +96,48 @@
         {% endwith %}
     </div>
 
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        var endpoint = '/stat/api/data/';
+        var stats_dict = {};
+        $.ajax({
+            method: 'GET',
+            url: endpoint,
+            success: function (data) {
+                stats_dict = data.stats_dict;
+                setCart()
+            },
+            error: function (error_data) {
+                console.log('error');
+                console.log(error_data);
+            }
+        });
+
+        function setCart() {
+            for (let statTitleId in stats_dict) {
+                var ctx = document.getElementById('myChart' + statTitleId);
+                var myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: stats_dict[statTitleId].labels,
+                        datasets: [{
+                            label: 'Выручка',
+                            data: stats_dict[statTitleId].default,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                })
+            }
+        }
+    </script>
 {% endblock %}

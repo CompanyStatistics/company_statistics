@@ -20,4 +20,5 @@ urlpatterns = [
     path('<int:stat_id>/stat_edit/',
          views.stat_edit,
          name='stat_edit'),
+    path('api/data/', views.get_data, name='api-data'),
 ]
