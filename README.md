@@ -1,6 +1,6 @@
 # CompanyStatictics
 [![Build Status](https://travis-ci.com/CompanyStatistics/company_statistics.svg?branch=master)](https://travis-ci.com/CompanyStatistics/company_statistics)
-[![Coverage Status](https://coveralls.io/repos/github/CompanyStatistics/company_statistics/badge.svg?branch=travis_ci)](https://coveralls.io/github/CompanyStatistics/company_statistics?branch=travis_ci)
+[![Coverage Status](https://coveralls.io/repos/github/CompanyStatistics/company_statistics/badge.svg?branch=master)](https://coveralls.io/github/CompanyStatistics/company_statistics?branch=master)
 
 App to maintain statistics of company
 
