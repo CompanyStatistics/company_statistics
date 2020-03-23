@@ -4,3 +4,5 @@ source = auth_app, stat_app
 [report]
 omit =
     */migrations/*
+    */apps.py
+    */tests.py
