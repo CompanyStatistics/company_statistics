@@ -21,7 +21,7 @@
                 {% for c in companies %}
                     <li {% if company == c %}class="list-group-item list-group-item-primary"
                         {% else %}class="list-group-item"{% endif %}>
-                        <a href="{% url "stat:department_list_company" c.slug %}">
+                        <a href="{% url "stat_app:department_list_company" c.slug %}">
                             {{ c.title }}
                             <br><span>Отделов: {{ c.total_departments }}</span>
                         </a>
@@ -45,10 +45,10 @@
                     {% for department in departments %}
                         {% with company=department.company %}
                             <h4>
-                                <a href="{% url "stat:department_detail" department.slug %}">{{ department.title }}</a>
+                                <a href="{% url "stat_app:department_detail" department.slug %}">{{ department.title }}</a>
                             </h4>
                             <p class="card-text">
-                                <a href="{% url "stat:department_list_company" company.slug %}">{{ company }}</a>.
+                                <a href="{% url "stat_app:department_list_company" company.slug %}">{{ company }}</a>.
                                 Форм: {{ department.total_stat_titles }}.
                             </p>
                         {% endwith %}

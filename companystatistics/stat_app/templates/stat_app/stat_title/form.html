@@ -1,0 +1,34 @@
+{% extends 'main_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if object %}
+        Редактировать форму "{{ object.title }}"
+    {% else %}
+        Добавить форму
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h2>
+                {% if object %}
+                    Редактировать форму "{{ object.title }}"
+                {% else %}
+                    Добавить форму
+                {% endif %}
+            </h2>
+
+        </div>
+        <div class="card-body">
+            <h3 class="card-title">{{ department }}</h3>
+            {#            <form action="." method="POST" novalidate>#}
+            <form action="." method="POST">
+                {{ form|crispy }}
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Сохранить форму</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'main_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if object %}
+        Редактировать данные "{{ object.title }}"
+    {% else %}
+        Добавить данные
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h2>
+                {% if object %}
+                    Редактировать данные
+                {% else %}
+                    Добавить данные
+                {% endif %}
+            </h2>
+        </div>
+        <div class="card-body">
+            <h3 class="card-title">{{ stat_title }}</h3>
+            {{ instance.title }}
+            {{ stat.title }}
+            {{ stat }}
+            {#            <form action="." method="POST" novalidate>#}
+            <form action="." method="POST">
+                {{ form|crispy }}
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Сохранить данные</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

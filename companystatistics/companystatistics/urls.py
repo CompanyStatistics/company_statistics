@@ -16,8 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from stat_app.views import DepartmentListView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('auth_app.urls', namespace='auth_app')),
-    path('', include('main_app.urls')),
+    path('stat/', include('stat_app.urls', namespace='stat_app')),
+    path('', DepartmentListView.as_view(), name='department_list'),
 ]
