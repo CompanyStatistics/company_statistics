@@ -1,5 +1,5 @@
 [run]
-source = auth_app
+source = auth_app, stat_app
 
 [report]
 omit =
