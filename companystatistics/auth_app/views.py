@@ -1,12 +1,16 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordChangeView
 from django.db import transaction
 from django.shortcuts import render, HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
+from rest_framework import viewsets, permissions, generics
 
 from .forms import CSUserLoginForm, CSUserEditForm, CSUserProfileEditForm
+from .models import CSUser, CSUserProfile
+from .serializers import CSUserSerializer
 
 
 class UserLoginView(View):
@@ -121,3 +125,24 @@ class UserProfileView(View):
         }
 
         return render(request, self.template_name, context)
+
+
+# class CSPasswordResetView(PasswordResetView):
+#     success_url = reverse_lazy('auth_app:password_reset_done')
+#
+#
+# class CSPasswordResetConfirmView(PasswordResetConfirmView):
+#     success_url = reverse_lazy('auth_app:password_reset_complete')
+#
+#
+# class CSPasswordChangeView(PasswordChangeView):
+#     success_url = reverse_lazy('auth_app:password_change_done')
+
+
+class CSUserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows cs_users to be viewed or edited.
+    """
+    queryset = CSUser.objects.all().order_by('-date_joined')
+    serializer_class = CSUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
