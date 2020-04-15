@@ -67,4 +67,4 @@ class Stat(models.Model):
         ordering = ['date']
 
     def __str__(self):
-        return self.title
+        return f'{self.date} | {self.amount} | {self.owner}'

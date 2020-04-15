@@ -4,9 +4,11 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateResponseMixin, View
+from rest_framework import viewsets, permissions
 
 from .forms import StatForm, StatTitleForm
 from .models import Department, Company, StatTitle, Stat
+from .serializers import CompanySerializer, DepartmentSerializer, StatTitleSerializer, StatSerializer
 
 
 class DepartmentListView(LoginRequiredMixin, TemplateResponseMixin, View):
@@ -113,3 +115,76 @@ def get_data(request, *args, **kwargs):
     }
 
     return JsonResponse(data)
+
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows companies to be viewed or edited.
+    """
+    queryset = Company.objects.all().order_by('title')
+    serializer_class = CompanySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+
+class DepartmentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows departments to be viewed or edited.
+    """
+    queryset = Department.objects.all().order_by('title')
+    serializer_class = DepartmentSerializer
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+
+class StatTitleViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows stat_titles to be viewed or edited.
+    """
+    queryset = StatTitle.objects.all().order_by('title')
+    serializer_class = StatTitleSerializer
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+
+class StatViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows stats to be viewed or edited.
+    """
+    queryset = Stat.objects.all().order_by('-date')
+    serializer_class = StatSerializer
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve', 'create']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]

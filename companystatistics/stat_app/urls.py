@@ -1,8 +1,15 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework import routers
 
 from . import views
 
 app_name = 'stat_app'
+
+router = routers.DefaultRouter()
+router.register(r'companies', views.CompanyViewSet)
+router.register(r'departments', views.DepartmentViewSet)
+router.register(r'stat_titles', views.StatTitleViewSet)
+router.register(r'stats', views.StatViewSet)
 
 urlpatterns = [
     path('company/<slug:company>/',
@@ -20,5 +27,8 @@ urlpatterns = [
     path('<int:stat_id>/stat_edit/',
          views.stat_edit,
          name='stat_edit'),
+
     path('api/data/', views.get_data, name='api-data'),
+
+    path('api/', include(router.urls)),
 ]
