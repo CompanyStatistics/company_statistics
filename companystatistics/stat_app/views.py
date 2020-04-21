@@ -1,12 +1,16 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateResponseMixin, View
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
 
 from .forms import StatForm, StatTitleForm
 from .models import Department, Company, StatTitle, Stat
+from .serializers import CompanySerializer, DepartmentSerializer, StatTitleSerializer, StatSerializer
 
 
 class DepartmentListView(LoginRequiredMixin, TemplateResponseMixin, View):
@@ -113,3 +117,159 @@ def get_data(request, *args, **kwargs):
     }
 
     return JsonResponse(data)
+
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows companies to be viewed or edited.
+    """
+    queryset = Company.objects.all().order_by('title')
+    serializer_class = CompanySerializer
+    # permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+
+class DepartmentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows departments to be viewed or edited.
+    """
+    queryset = Department.objects.all().order_by('title')
+    serializer_class = DepartmentSerializer
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    # def perform_create(self, serializer):
+    #     company_id = self.kwargs.get('company_id')
+    #     company = get_object_or_404(Company, id=company_id)
+    #     serializer.save(company=company)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            item = request.data
+            if not (item.get('title') and item.get('slug')):
+                raise AttributeError
+            company_id = item.get('company')
+            company = get_object_or_404(Company, id=company_id)
+            item['company'] = company
+            department = Department.objects.create(**item)
+            return Response(status=status.HTTP_201_CREATED)
+        except AttributeError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            query_dict = request.data
+            item = dict(query_dict.items())
+            department_id = kwargs.get('pk')
+            if not department_id:
+                raise AttributeError
+            Department.objects.filter(id=department_id).update(**item)
+            return Response(status=status.HTTP_200_OK)
+        except AttributeError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class StatTitleViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows stat_titles to be viewed or edited.
+    """
+    queryset = StatTitle.objects.all().order_by('title')
+    serializer_class = StatTitleSerializer
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            item = request.data
+            if not item.get('title'):
+                raise AttributeError
+            department_id = item.get('department')
+            department = get_object_or_404(Department, id=department_id)
+            item['department'] = department
+            StatTitle.objects.create(**item)
+            return Response(status=status.HTTP_201_CREATED)
+        except AttributeError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            query_dict = request.data
+            item = dict(query_dict.items())
+            id_ = kwargs.get('pk')
+            if not id_:
+                raise AttributeError
+            StatTitle.objects.filter(id=id_).update(**item)
+            return Response(status=status.HTTP_200_OK)
+        except AttributeError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class StatViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows stats to be viewed or edited.
+    """
+    queryset = Stat.objects.all().order_by('-date')
+    serializer_class = StatSerializer
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve', 'create']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            item = request.data
+            if not (item.get('amount') and item.get('date')):
+                raise AttributeError
+            owner_id = item.get('owner')
+            stat_title_id = item.get('title')
+            owner = get_object_or_404(get_user_model(), id=owner_id)
+            title = get_object_or_404(StatTitle, id=stat_title_id)
+            item['owner'] = owner
+            item['title'] = title
+            Stat.objects.create(**item)
+            return Response(status=status.HTTP_201_CREATED)
+        except AttributeError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            query_dict = request.data
+            item = dict(query_dict.items())
+            id_ = kwargs.get('pk')
+            if not id_:
+                raise AttributeError
+            Stat.objects.filter(id=id_).update(**item)
+            return Response(status=status.HTTP_200_OK)
+        except AttributeError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
