@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -5,8 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import Company, Department, StatTitle, Stat
-from .serializers import CompanySerializer
-
+from .serializers import CompanySerializer, DepartmentSerializer, StatTitleSerializer, StatSerializer
 
 User = get_user_model()
 
@@ -259,6 +260,7 @@ class CreateDepartmentAPITest(APITestCase):
             'slug': 'Otdel-1',
             'overview': '',
         }
+        self.url = 'stat_app:department-list'
 
     def test_can_create_department(self):
         """
@@ -266,25 +268,21 @@ class CreateDepartmentAPITest(APITestCase):
         """
         self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
         self.client.login(username='user', password='user')
-        url = 'stat_app:department-list'
-        response = self.client.post(reverse(url), self.data, format='json')
-        # response = self.client.post(reverse(url), self.data, content_type='application/json')
-        # response = self.client.post(reverse(url), json.dumps(self.data), content_type='application/json')
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(Company.objects.count(), 1)
-        # self.assertEqual(Company.objects.get().title, 'Отдел 1')
-        # self.assertEqual(Company.objects.get().slug, 'Otdel-1')
+        response = self.client.post(reverse(self.url), self.data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Department.objects.count(), 1)
+        self.assertEqual(Department.objects.get().title, 'Отдел 1')
+        self.assertEqual(Department.objects.get().slug, 'Otdel-1')
 
-    # def test_can_not_create_department(self):
-    #     """
-    #     Ensure common user can not create a new department object.
-    #     """
-    #     self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
-    #     self.client.login(username='user', password='user')
-    #     url = 'stat_app:company-list'
-    #     response = self.client.post(reverse(url), self.data)
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #     self.assertEqual(Company.objects.count(), 0)
+    def test_can_not_create_department(self):
+        """
+        Ensure common user can not create a new department object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        response = self.client.post(reverse(self.url), self.data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Department.objects.count(), 0)
 
 
 class ReadDepartmentTest(APITestCase):
@@ -312,3 +310,328 @@ class ReadDepartmentTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Department.objects.get().title, 'Отдел 1')
         self.assertEqual(Department.objects.get().slug, 'Otdel-1')
+
+
+class UpdateDepartmentTest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.data = DepartmentSerializer(self.department).data
+        self.data.update({'title': 'Отдел 2'})
+        self.url = 'stat_app:department-detail'
+
+    def test_can_update_department(self):
+        """
+        Ensure staff can update a department object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        response = self.client.put(reverse(self.url, args=[self.department.id]), self.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Department.objects.count(), 1)
+        self.assertEqual(Department.objects.get().title, 'Отдел 2')
+        self.assertEqual(Department.objects.get().slug, 'Otdel-1')
+
+    def test_can_not_update_department(self):
+        """
+        Ensure common user can not update a department object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        response = self.client.put(reverse(self.url, args=[self.department.id]), self.data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class DeleteDepartmentTest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.url = 'stat_app:department-detail'
+
+    def test_can_delete_department(self):
+        """
+        Ensure staff can delete a department object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        response = self.client.delete(reverse(self.url, args=[self.department.id]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Department.objects.count(), 0)
+
+    def test_can_not_delete_department(self):
+        """
+        Ensure common user can not delete a department object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        response = self.client.delete(reverse(self.url, args=[self.department.id]))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Department.objects.count(), 1)
+
+
+class CreateStatTitleAPITest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.data = {
+            'department': self.department.id,
+            'title': 'Продажа рогов',
+            'overview': 'Продажа офигенных рогов',
+        }
+        self.url = 'stat_app:stattitle-list'
+
+    def test_can_create_stat_title(self):
+        """
+        Ensure staff can create a new stat_title object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        response = self.client.post(reverse(self.url), self.data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(StatTitle.objects.count(), 1)
+        self.assertEqual(StatTitle.objects.get().title, 'Продажа рогов')
+        self.assertEqual(StatTitle.objects.get().overview, 'Продажа офигенных рогов')
+
+    def test_can_not_create_stat_title(self):
+        """
+        Ensure common user can not create a new stat_title object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        response = self.client.post(reverse(self.url), self.data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(StatTitle.objects.count(), 0)
+
+
+class ReadStatTitleTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.stat_title = StatTitle.objects.create(
+            department=self.department, title='Продажа рогов', overview='Продажа офигенных рогов')
+
+    def test_can_read_stat_title_list(self):
+        """
+        Ensure we can read a list of stat_titles.
+        """
+        url = 'stat_app:stattitle-list'
+        response = self.client.get(reverse(url))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(StatTitle.objects.count(), 1)
+
+    def test_can_read_stat_title_detail(self):
+        """
+        Ensure we can read details of stat_title.
+        """
+        url = 'stat_app:stattitle-detail'
+        response = self.client.get(reverse(url, args=[self.department.id]))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(StatTitle.objects.get().title, 'Продажа рогов')
+        self.assertEqual(StatTitle.objects.get().overview, 'Продажа офигенных рогов')
+
+
+class UpdateStatTitleTest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.stat_title = StatTitle.objects.create(
+            department=self.department, title='Продажа рогов', overview='Продажа офигенных рогов')
+        self.data = StatTitleSerializer(self.stat_title).data
+        self.data.update({'title': 'Продажа копыт'})
+        self.url = 'stat_app:stattitle-detail'
+
+    def test_can_update_stat_title(self):
+        """
+        Ensure staff can update a stat_title object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        response = self.client.put(reverse(self.url, args=[self.stat_title.id]), self.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(StatTitle.objects.count(), 1)
+        self.assertEqual(StatTitle.objects.get().title, 'Продажа копыт')
+        self.assertEqual(StatTitle.objects.get().overview, 'Продажа офигенных рогов')
+
+    def test_can_not_update_stat_title(self):
+        """
+        Ensure common user can not update a stat_title object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        response = self.client.put(reverse(self.url, args=[self.stat_title.id]), self.data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class DeleteStatTitleTest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.stat_title = StatTitle.objects.create(
+            department=self.department, title='Продажа рогов', overview='Продажа офигенных рогов')
+        self.url = 'stat_app:stattitle-detail'
+
+    def test_can_delete_stat_title(self):
+        """
+        Ensure staff can delete a stat_title object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        response = self.client.delete(reverse(self.url, args=[self.stat_title.id]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(StatTitle.objects.count(), 0)
+
+    def test_can_not_delete_stat_title(self):
+        """
+        Ensure common user can not delete a stat_title object.
+        """
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        response = self.client.delete(reverse(self.url, args=[self.stat_title.id]))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(StatTitle.objects.count(), 1)
+
+
+class CreateStatAPITest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.stat_title = StatTitle.objects.create(
+            department=self.department, title='Продажа рогов', overview='Продажа офигенных рогов')
+        self.url = 'stat_app:stat-list'
+
+    def test_can_create_stat(self):
+        """
+        Ensure staff can create a new stat object.
+        """
+        user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        data = {
+            'owner': user.id,
+            'title': self.stat_title.id,
+            'amount': 2.5,
+            'date': '2020-04-20',
+        }
+        response = self.client.post(reverse(self.url), data, format='json')
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    #     self.assertEqual(Stat.objects.count(), 1)
+    #     self.assertEqual(Stat.objects.get().amount, data.get('amount'))
+    #     self.assertEqual(Stat.objects.get().date, data.get('date'))
+
+    # def test_can_not_create_stat(self):
+    #     """
+    #     Ensure common user can not create a new stat object.
+    #     """
+    #     user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+    #     self.client.login(username='user', password='user')
+    #     data = {
+    #         'owner': user.id,
+    #         'title': self.stat_title.id,
+    #         'amount': 2.5,
+    #         'date': '2020-04-20',
+    #     }
+    #     response = self.client.post(reverse(self.url), data, format='json')
+    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    #     self.assertEqual(Stat.objects.count(), 0)
+
+
+class ReadStatTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.stat_title = StatTitle.objects.create(
+            department=self.department, title='Продажа рогов', overview='Продажа офигенных рогов')
+        self.stat = Stat.objects.create(
+            owner=self.user, title=self.stat_title, amount=2.5, date='2020-04-20')
+
+    def test_can_read_stat_list(self):
+        """
+        Ensure we can read a list of stat.
+        """
+        url = 'stat_app:stat-list'
+        response = self.client.get(reverse(url))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Stat.objects.count(), 1)
+
+    def test_can_read_stat_detail(self):
+        """
+        Ensure we can read details of stat.
+        """
+        url = 'stat_app:stat-detail'
+        response = self.client.get(reverse(url, args=[self.stat.id]))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Stat.objects.get().amount, 2.5)
+        self.assertEqual(Stat.objects.get().date, datetime.date(2020, 4, 20))
+
+
+class UpdateStatTest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.stat_title = StatTitle.objects.create(
+            department=self.department, title='Продажа рогов', overview='Продажа офигенных рогов')
+        self.url = 'stat_app:stat-detail'
+
+    def test_can_update_stat(self):
+        """
+        Ensure staff can update a stat object.
+        """
+        user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        stat = Stat.objects.create(
+            owner=user, title=self.stat_title, amount=2.5, date='2020-04-20')
+        data = StatSerializer(stat).data
+        data.update({'amount': 4.0})
+        response = self.client.put(reverse(self.url, args=[stat.id]), data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Stat.objects.count(), 1)
+        self.assertEqual(Stat.objects.get().amount, 4.0)
+
+    def test_can_not_update_stat(self):
+        """
+        Ensure common user can not update a stat object.
+        """
+        user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        stat = Stat.objects.create(
+            owner=user, title=self.stat_title, amount=2.5, date='2020-04-20')
+        data = StatSerializer(stat).data
+        data.update({'amount': 4.0})
+        response = self.client.put(reverse(self.url, args=[stat.id]), data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class DeleteStatTest(APITestCase):
+    def setUp(self):
+        self.company = Company.objects.create(title='Рога и копыта', slug='Roga-i-Kopyta')
+        self.department = Department.objects.create(company=self.company, title='Отдел 1', slug='Otdel-1')
+        self.stat_title = StatTitle.objects.create(
+            department=self.department, title='Продажа рогов', overview='Продажа офигенных рогов')
+        self.url = 'stat_app:stat-detail'
+
+    def test_can_delete_stat(self):
+        """
+        Ensure staff can delete a stat object.
+        """
+        user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=True)
+        self.client.login(username='user', password='user')
+        stat = Stat.objects.create(
+            owner=user, title=self.stat_title, amount=2.5, date='2020-04-20')
+        response = self.client.delete(reverse(self.url, args=[stat.id]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Stat.objects.count(), 0)
+
+    def test_can_not_delete_stat(self):
+        """
+        Ensure common user can not delete a stat object.
+        """
+        user = User.objects.create_user('user', 'user@cs.local', 'user', is_staff=False)
+        self.client.login(username='user', password='user')
+        stat = Stat.objects.create(
+            owner=user, title=self.stat_title, amount=2.5, date='2020-04-20')
+        response = self.client.delete(reverse(self.url, args=[stat.id]))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Stat.objects.count(), 1)
