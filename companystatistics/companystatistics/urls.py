@@ -24,5 +24,5 @@ urlpatterns = [
     path('stat/', include('stat_app.urls', namespace='stat_app')),
     path('', DepartmentListView.as_view(), name='department_list'),
 
-    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
