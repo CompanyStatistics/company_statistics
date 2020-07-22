@@ -31,17 +31,22 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'main_app',
-    'auth_app',
-    'stat_app',
-    'crispy_forms',
-    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'crispy_forms',
+    'rest_framework',
+    # 'django_plotly_dash.apps.DjangoPlotlyDashConfig',
+    # 'channels',
+    # 'channels_redis',
+
+    'main_app',
+    'auth_app',
+    'stat_app',
 ]
 
 MIDDLEWARE = [
@@ -108,10 +113,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
-# LANGUAGE_CODE = 'en-us'
 LANGUAGE_CODE = 'ru-RU'
 
-# TIME_ZONE = 'UTC'
 TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
@@ -125,10 +128,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-
+STATIC_ROOT = 'static'
 STATICFILES_DIRS = (
-    # os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'assets'),
+    os.path.join(BASE_DIR, 'companystatistics', 'static'),
+    # os.path.join(BASE_DIR, 'assets'),
 )
 
 AUTH_USER_MODEL = 'auth_app.CSUser'
@@ -150,6 +153,13 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+ASGI_APPLICATION = 'companystatistics.routing.application'
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

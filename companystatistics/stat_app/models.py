@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.contrib.contenttypes.models import ContentType
 
 
 class Company(models.Model):
@@ -51,11 +50,11 @@ class StatTitle(models.Model):
 
 class Stat(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                   related_name='statistics_created',
-                                   on_delete=models.DO_NOTHING)
+                              related_name='statistics_created',
+                              on_delete=models.DO_NOTHING)
     title = models.ForeignKey(StatTitle,
                               related_name='stats',
-                              on_delete=models.CASCADE,)
+                              on_delete=models.CASCADE, )
     amount = models.DecimalField(decimal_places=2, max_digits=12)
     date = models.DateField()
     created = models.DateTimeField(auto_now_add=True)

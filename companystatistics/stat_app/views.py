@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
+from django.db.models.query import QuerySet
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
@@ -18,13 +19,16 @@ class DepartmentListView(LoginRequiredMixin, TemplateResponseMixin, View):
     template_name = 'stat_app/department/list.html'
 
     def get(self, request, company=None):
-        companies = Company.objects.annotate(
-            total_departments=Count('departments'))
-        departments = Department.objects.annotate(
-            total_stat_titles=Count('stat_titles'))
+        companies = _get_all_companies()
+        departments = _get_all_departments()
+        company = None
+        print(f'companies type = {type(companies)}')
+        print(f'departments type = {type(departments)}')
         if company:
-            company = get_object_or_404(Company, slug=company)
-            departments = departments.filter(company=company)
+            company = _get_company(company)
+            departments = _get_departments_of_company(company)
+            print(f'company type = {type(company)}')
+            print(f'departments type = {type(departments)}')
 
         return self.render_to_response({'companies': companies,
                                         'company': company,
@@ -273,3 +277,24 @@ class StatViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_200_OK)
         except AttributeError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+def _get_all_companies() -> QuerySet:
+    """Get all companies and annotate them with the number of departments"""
+    return Company.objects.annotate(total_departments=Count('departments'))
+
+
+def _get_all_departments() -> QuerySet:
+    """Get all departments and annotate them with the number of forms (stat_titles)"""
+    return Department.objects.annotate(total_stat_titles=Count('stat_titles'))
+
+
+def _get_company(company: str) -> Company:
+    """Get company by slug"""
+    return get_object_or_404(Company, slug=company)
+
+
+def _get_departments_of_company(company: Company):
+    """Get departments of company"""
+    departments = _get_all_departments()
+    return departments.filter(company=company)
