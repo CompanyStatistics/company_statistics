@@ -16,7 +16,7 @@ router.register(r'stats', views.StatViewSet)
 # schema_view = get_schema_view(title='Stat API', description='An API to manage statistics.')
 
 urlpatterns = [
-    path('company/<slug:company>/',
+    path('company/<slug:company_slug>/',
          views.DepartmentListView.as_view(),
          name='department_list_company'),
     path('<slug:slug>/',

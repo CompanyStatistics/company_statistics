@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
@@ -18,21 +20,14 @@ class DepartmentListView(LoginRequiredMixin, TemplateResponseMixin, View):
     model = Department
     template_name = 'stat_app/department/list.html'
 
-    def get(self, request, company=None):
-        companies = _get_all_companies()
-        departments = _get_all_departments()
-        company = None
-        print(f'companies type = {type(companies)}')
-        print(f'departments type = {type(departments)}')
-        if company:
-            company = _get_company(company)
-            departments = _get_departments_of_company(company)
-            print(f'company type = {type(company)}')
-            print(f'departments type = {type(departments)}')
-
-        return self.render_to_response({'companies': companies,
-                                        'company': company,
-                                        'departments': departments})
+    def get(self, request, company_slug: Optional[str] = None):
+        companies = _annotate_companies()
+        company = _get_company(company_slug)
+        departments = _get_departments(company)
+        context = {'companies': companies,
+                   'company': company,
+                   'departments': departments}
+        return self.render_to_response(context)
 
 
 class DepartmentDetailView(LoginRequiredMixin, DetailView):
@@ -42,16 +37,13 @@ class DepartmentDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(DepartmentDetailView,
                         self).get_context_data(**kwargs)
-        stat_titles = StatTitle.objects.filter(department=self.object)
-        stats = Stat.objects.all()
-        context['stat_titles'] = stat_titles
-        context['stats'] = stats
-
+        context['stat_titles'] = _get_stat_titles(department=self.object)
+        context['stats'] = _get_all_stats()
         return context
 
 
 def stat_create(request, stat_title_id):
-    stat_title = StatTitle.objects.filter(id=stat_title_id).first()
+    stat_title = _get_stat_title(stat_title_id)
     if request.method == "POST":
         form = StatForm(request.POST)
         if form.is_valid():
@@ -129,6 +121,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
     """
     queryset = Company.objects.all().order_by('title')
     serializer_class = CompanySerializer
+
     # permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
@@ -279,22 +272,43 @@ class StatViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-def _get_all_companies() -> QuerySet:
-    """Get all companies and annotate them with the number of departments"""
+def _annotate_companies() -> QuerySet:
+    """Annotate companies with the number of departments"""
     return Company.objects.annotate(total_departments=Count('departments'))
 
 
-def _get_all_departments() -> QuerySet:
-    """Get all departments and annotate them with the number of forms (stat_titles)"""
+def _annotate_departments() -> QuerySet:
+    """Annotate departments with the number of forms (stat_titles)"""
     return Department.objects.annotate(total_stat_titles=Count('stat_titles'))
 
 
-def _get_company(company: str) -> Company:
-    """Get company by slug"""
-    return get_object_or_404(Company, slug=company)
+def _get_company(company_slug: Optional[str]) -> Optional[Company]:
+    """Get company by slug from database"""
+    if company_slug:
+        return get_object_or_404(Company, slug=company_slug)
+    else:
+        return None
 
 
-def _get_departments_of_company(company: Company):
-    """Get departments of company"""
-    departments = _get_all_departments()
-    return departments.filter(company=company)
+def _get_departments(company: Optional[Company]) -> QuerySet:
+    """Get departments of the company from database"""
+    departments = _annotate_departments()
+    if company:
+        return departments.filter(company=company)
+    else:
+        return departments
+
+
+def _get_stat_titles(department: Department) -> QuerySet:
+    """Get stat_titles of the department from database"""
+    return StatTitle.objects.filter(department=department)
+
+
+def _get_all_stats() -> QuerySet:
+    """Get all stats from database"""
+    return Stat.objects.all()
+
+
+def _get_stat_title(stat_title_id: int) -> StatTitle:
+    """Get stat_title by id from database"""
+    return StatTitle.objects.get(id=stat_title_id)
