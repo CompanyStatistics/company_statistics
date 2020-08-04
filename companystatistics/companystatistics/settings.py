@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'auth_app',
     'stat_app',
     'crispy_forms',
+    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -155,3 +156,5 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'

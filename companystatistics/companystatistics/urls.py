@@ -25,4 +25,6 @@ urlpatterns = [
     path('', DepartmentListView.as_view(), name='department_list'),
 
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
+    path('django_plotly_dash/', include('django_plotly_dash.urls')),
 ]

@@ -1,6 +1,6 @@
 {% extends 'main_app/base.html' %}
 {% load crispy_forms_tags %}
-{#{% load plotly_dash %}#}
+{% load plotly_dash %}
 
 {% block title %}
     {{ object.title }}
@@ -20,7 +20,7 @@
                     <div class="card-body">
                         <h3 class="card-title">Описание:</h3>
                         <p class="card-text">
-                            <a href="{% url "stat_app:department_list_company" company.slug %}">{{ company.title }}</a>.
+                            <a href="{% url 'stat_app:department_list_company' company.slug %}">{{ company.title }}</a>.
                         </p>
                         {% if object.overview %}
                             <p class="card-text">
@@ -31,7 +31,7 @@
 
                     {% if request.user.is_staff %}
                         <div class="card-footer">
-                            <a href="{% url "stat_app:stat_title_create" department.id %}"
+                            <a href="{% url 'stat_app:stat_title_create' department.id %}"
                                class="btn btn-primary">
                                 Добавить форму
                             </a>
@@ -58,15 +58,15 @@
                                 </div>
                                 <div class="card-body">
                                     {% if request.user.is_staff %}
-                                        {#                                            <div class="collapse" id="collapseExample">#}
                                         <div class="collapse" id="collapse{{ stat_title.id }}">
                                             <canvas id="myChart{{ stat_title.id }}" width="400" height="150"></canvas>
+                                            {% plotly_app name="SimpleExample" %}
                                             <ul class="list-group">
                                                 {% for s in stats %}
                                                     {% if s.title == stat_title %}
                                                         <li class="list-group-item">
                                                             {{ s.date }} - {{ s.amount }} ({{ s.owner }})
-                                                            <a href="{% url "stat_app:stat_edit" s.id %}"
+                                                            <a href="{% url 'stat_app:stat_edit' s.id %}"
                                                                class="btn btn-link">
                                                                 Изменить данные
                                                             </a>
@@ -76,7 +76,7 @@
                                             </ul>
                                         </div>
                                     {% endif %}
-                                    <a href="{% url "stat_app:stat_create" stat_title.id %}"
+                                    <a href="{% url 'stat_app:stat_create' stat_title.id %}"
                                        class="btn btn-primary mt-3">
                                         Добавить данные
                                     </a>
